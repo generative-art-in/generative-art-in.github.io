@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Generative Art - Shapes with lines</title>
+	<link rel="icon" type="image/png" href="images/favicon.png">
+	<meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Load the Paper.js library -->
+<script type="text/javascript" src="js/paper-full.min.js"></script>
+<!-- Define inlined PaperScript associate it with myCanvas -->
+<script type="text/paperscript" canvas="myCanvas">
+  globals.draw = function(background, radius, numPoints, bridge, strokeColor, strokeWidth) {
+		project.activeLayer.removeChildren();
+
+		// setup background
+		var rect = Shape.Rectangle(new Point(0,0), view.viewSize);
+		rect.fillColor = background;
+
+		var poly = new Path.RegularPolygon(view.center, numPoints, radius);
+		poly.remove();
+		var points = [];
+		for (var i = 0; i < poly.segments.length; i++) {
+			points.push(poly.segments[i].point);
+		}
+		for (var i = 0; i < points.length; i++) {
+			var path = new Path([points[i], points[(i+bridge)%points.length]]);
+			path.strokeColor = strokeColor;
+			path.strokeWidth = strokeWidth;
+			path.strokeCap = 'round';
+		}
+	}
+</script>
+<script type="text/javascript">
+  window.globals = {};
+	window.onload = function() {
+		var drawWithParameters = function() {
+			let background = document.getElementById('background').value;
+			let radius = Number(document.getElementById('radius').value);
+			let numPoints = Number(document.getElementById('num_points').value);
+			let bridge = Number(document.getElementById('bridge').value);
+			let strokeColor = document.getElementById('stroke_color').value;
+			let strokeWidth = Number(document.getElementById('stroke_width').value);
+			window.globals.draw(background, radius, numPoints, bridge, strokeColor, strokeWidth);
+		};
+		document.getElementById('submit').onclick = drawWithParameters;
+		drawWithParameters();
+	};
+</script>
+<link rel="stylesheet" href="css/pure-min.css">
+<link rel="stylesheet" href="css/grids-responsive-min.css">
+<style>
+	html,
+	body {
+	    height: 100%;
+	}
+
+	/* Scale canvas with resize attribute to full size */
+	canvas {
+	    width: 800px;
+	    height: 800px;
+	}
+	canvas {
+		border-style: groove;
+	}
+</style>
+</head>
+<body>
+	<h1>Generative Art - Shapes with lines</h1>
+	<div id="layout" class="pure-g">
+		<div class="sidebar pure-u-1 pure-u-md-1-4">
+			<div class="pure-form pure-form-aligned">
+				<fieldset>
+					<div class="pure-control-group">
+						<label for="background">Background:</label>
+					  <input type="text" id="background" name="background" value="black"></input>
+					</div>
+					<div class="pure-control-group">
+					  <label for="radius">Radius:</label>
+					  <input type="number" id="radius" name="radius" value="300"></input>
+					</div>
+					<div class="pure-control-group">
+					  <label for="num_points">Number of Points:</label>
+					  <input type="number" id="num_points" name="num_points" value="100"></input>
+					</div>
+					<div class="pure-control-group">
+						<label for="bridge">Bridge:</label>
+					  <input type="number" id="bridge" name="bridge" value="33"></input>
+					</div>
+					<div class="pure-control-group">
+						<label for="stroke_color">Stroke Color:</label>
+					  <input type="text" id="stroke_color" name="stroke_color" value="#8f3a84"></input>
+					</div>
+					<div class="pure-control-group">
+						<label for="bridge">Stroke Width:</label>
+					  <input type="number" id="stroke_width" name="stroke_width" value="2"></input>
+					</div>
+					<div class="pure-controls">
+				  	<button class="pure-button" type="number" id="submit">Submit</button>
+					</div>
+				</fieldset>
+			</div>
+		</div>
+		<div class="content pure-u-1 pure-u-md-3-4">
+			<canvas id="myCanvas"></canvas>
+	  </div>
+	</div>
+</body>
+</html>
