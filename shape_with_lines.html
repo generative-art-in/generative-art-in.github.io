@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Generative Art - Shapes with lines</title>
-    <link rel="icon" type="image/png" href="images/favicon.png"/>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="icon" type="image/png" href="images/favicon.png" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Load the Paper.js library -->
     <script type="text/javascript" src="js/paper-full.min.js"></script>
     <!-- Define inlined PaperScript associate it with myCanvas -->
@@ -32,8 +33,8 @@
     </script>
     <script type="text/javascript">
         window.globals = {};
-        window.onload = function() {
-            var drawWithParameters = function() {
+        window.onload = function () {
+            var drawWithParameters = function () {
                 let background = document.getElementById('background').value;
                 let radius = Number(document.getElementById('radius').value);
                 let numPoints = Number(document.getElementById('num_points').value);
@@ -53,13 +54,14 @@
         body {
             height: 100%;
         }
+
         /* Scale canvas with resize attribute to full size */
-        
+
         canvas {
             width: 800px;
             height: 800px;
         }
-        
+
         canvas {
             border-style: groove;
         }
@@ -68,7 +70,10 @@
 
 <body>
     <h1>Generative Art - Shapes with lines</h1>
-    Generating artwork by drawing equal lines across equal spaced points on a shape like circle/square/triangle. Bridge is the gap across which two dots have to be joined.
+    <p>
+        Generating artwork by drawing equal lines across equal spaced points on a shape like circle/square/triangle. Bridge
+        is the gap across which two dots have to be joined.
+    </p>
     <div id="layout" class="pure-g">
         <div class="sidebar pure-u-1 pure-u-md-1-4">
             <div class="pure-form pure-form-aligned">
@@ -107,7 +112,7 @@
             <canvas id="myCanvas"></canvas>
         </div>
     </div>
-    <p>For any feedback on this page, please send an email to <img src="images/generative-art-email.png"/></p>
+    <p>For any feedback on this page, please send an email to <img src="images/generative-art-email.png" /></p>
 </body>
 
 </html>
