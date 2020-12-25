@@ -1,53 +1,69 @@
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Generative Art - Shapes with lines</title>
-    <link rel="icon" type="image/png" href="images/favicon.png">
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="images/favicon.png"/>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <!-- Load the Paper.js library -->
     <script type="text/javascript" src="js/paper-full.min.js"></script>
     <!-- Define inlined PaperScript associate it with myCanvas -->
     <script type="text/paperscript" canvas="myCanvas">
-        globals.draw = function(background, radius, numPoints, bridge, strokeColor, strokeWidth) { project.activeLayer.removeChildren(); // setup background var rect = Shape.Rectangle(new Point(0,0), view.viewSize); rect.fillColor = background; var poly = new
-        Path.RegularPolygon(view.center, numPoints, radius); poly.remove(); var points = []; for (var i = 0; i
-        < poly.segments.length; i++) { points.push(poly.segments[i].point); } for (var i=0 ; i < points.length; i++) { var path=n ew Path([points[i], points[(i+bridge)%points.length]]); path.strokeColor=s trokeColor; path.strokeWidth=s trokeWidth; path.strokeCap='round'
-            ; } } </script>
-            <script type="text/javascript">
-                window.globals = {};
-                window.onload = function() {
-                    var drawWithParameters = function() {
-                        let background = document.getElementById('background').value;
-                        let radius = Number(document.getElementById('radius').value);
-                        let numPoints = Number(document.getElementById('num_points').value);
-                        let bridge = Number(document.getElementById('bridge').value);
-                        let strokeColor = document.getElementById('stroke_color').value;
-                        let strokeWidth = Number(document.getElementById('stroke_width').value);
-                        window.globals.draw(background, radius, numPoints, bridge, strokeColor, strokeWidth);
-                    };
-                    document.getElementById('submit').onclick = drawWithParameters;
-                    drawWithParameters();
-                };
-            </script>
-            <link rel="stylesheet" href="css/pure-min.css">
-            <link rel="stylesheet" href="css/grids-responsive-min.css">
-            <style>
-                html,
-                body {
-                    height: 100%;
-                }
-                /* Scale canvas with resize attribute to full size */
-                
-                canvas {
-                    width: 800px;
-                    height: 800px;
-                }
-                
-                canvas {
-                    border-style: groove;
-                }
-            </style>
+        globals.draw = function(background, radius, numPoints, bridge, strokeColor, strokeWidth) {
+            project.activeLayer.removeChildren();
+    
+            // setup background
+            var rect = Shape.Rectangle(new Point(0,0), view.viewSize);
+            rect.fillColor = background;
+    
+            var poly = new Path.RegularPolygon(view.center, numPoints, radius);
+            poly.remove();
+            var points = [];
+            for (var i = 0; i < poly.segments.length; i++) {
+                points.push(poly.segments[i].point);
+            }
+            for (var i = 0; i < points.length; i++) {
+                var path = new Path([points[i], points[(i+bridge)%points.length]]);
+                path.strokeColor = strokeColor;
+                path.strokeWidth = strokeWidth;
+                path.strokeCap = 'round';
+            }
+        }
+    </script>
+    <script type="text/javascript">
+        window.globals = {};
+        window.onload = function() {
+            var drawWithParameters = function() {
+                let background = document.getElementById('background').value;
+                let radius = Number(document.getElementById('radius').value);
+                let numPoints = Number(document.getElementById('num_points').value);
+                let bridge = Number(document.getElementById('bridge').value);
+                let strokeColor = document.getElementById('stroke_color').value;
+                let strokeWidth = Number(document.getElementById('stroke_width').value);
+                window.globals.draw(background, radius, numPoints, bridge, strokeColor, strokeWidth);
+            };
+            document.getElementById('submit').onclick = drawWithParameters;
+            drawWithParameters();
+        };
+    </script>
+    <link rel="stylesheet" href="css/pure-min.css">
+    <link rel="stylesheet" href="css/grids-responsive-min.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+        /* Scale canvas with resize attribute to full size */
+        
+        canvas {
+            width: 800px;
+            height: 800px;
+        }
+        
+        canvas {
+            border-style: groove;
+        }
+    </style>
 </head>
 
 <body>
