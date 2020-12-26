@@ -23,19 +23,24 @@
             return points;
         }
 
-        function pointsForShape(segments, numPoints) {
+        function pointsForShape(sides, radius, numPoints) {
+            var poly = new Path.RegularPolygon(view.center, sides, radius);
+            poly.remove();
+            var segments = poly.segments;
             var points = [];
 
-            var sides = segments.length;
             var pointsOnEachSide = numPoints/sides;
             for (var i = 0; i < segments.length; i++) {
                 var left = segments[i].point;
                 var right = segments[(i + 1)%segments.length].point;
+                console.log("left: "+left);
+                console.log("right: "+right);
                 points.push(left);
                 points = points.concat(splitLine(left, right, pointsOnEachSide - 1));
             }
             return points;
         }
+
         globals.draw = function(shape, background, radius, numPoints, bridge, strokeColor, strokeWidth) {
             project.activeLayer.removeChildren();
     
@@ -47,11 +52,10 @@
 
             switch(shape) {
                 case 'square':
-                var topLeft = new Point(view.center.x - radius/2, view.center.y - radius/2);
-                var square = new Path.Rectangle(topLeft, new Size(radius, radius));
-                square.remove();
-
-                points = pointsForShape(square.segments, numPoints);
+                points = pointsForShape(4, radius, numPoints);
+                break;
+                case 'triangle':
+                points = pointsForShape(3, radius, numPoints);
                 break;
                 default:
                 var poly = new Path.RegularPolygon(view.center, numPoints, radius);
@@ -122,6 +126,7 @@
                         <select id="shape" name="shape">
                             <option value="circle" selected>Circle</option>
                             <option value="square">Square</option>
+                            <option value="triangle">Triangle</option>
                           </select>
                     </div>
                     <div class="pure-control-group">
@@ -129,7 +134,7 @@
                         <input type="text" id="background" name="background" value="black"></input>
                     </div>
                     <div class="pure-control-group">
-                        <label for="radius">Radius/Side:</label>
+                        <label for="radius">Radius:</label>
                         <input type="number" id="radius" name="radius" value="300"></input>
                     </div>
                     <div class="pure-control-group">
