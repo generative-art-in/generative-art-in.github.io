@@ -10,19 +10,57 @@
     <script type="text/javascript" src="js/paper-full.min.js"></script>
     <!-- Define inlined PaperScript associate it with myCanvas -->
     <script type="text/paperscript" canvas="myCanvas">
-        globals.draw = function(background, radius, numPoints, bridge, strokeColor, strokeWidth) {
+        function splitLine(leftEnd, rightEnd, numPoints) {
+            var points = [];
+
+            var incr = (rightEnd - leftEnd)/(numPoints+1);
+            var nextPoint = leftEnd;
+            for (var i = 0; i < numPoints; i++) {
+                nextPoint = nextPoint + incr;
+                points.push(nextPoint);
+            }
+            console.log(points);
+            return points;
+        }
+
+        function pointsForShape(segments, numPoints) {
+            var points = [];
+
+            var sides = segments.length;
+            var pointsOnEachSide = numPoints/sides;
+            for (var i = 0; i < segments.length; i++) {
+                var left = segments[i].point;
+                var right = segments[(i + 1)%segments.length].point;
+                points.push(left);
+                points = points.concat(splitLine(left, right, pointsOnEachSide - 1));
+            }
+            return points;
+        }
+        globals.draw = function(shape, background, radius, numPoints, bridge, strokeColor, strokeWidth) {
             project.activeLayer.removeChildren();
     
             // setup background
             var rect = Shape.Rectangle(new Point(0,0), view.viewSize);
             rect.fillColor = background;
     
-            var poly = new Path.RegularPolygon(view.center, numPoints, radius);
-            poly.remove();
             var points = [];
-            for (var i = 0; i < poly.segments.length; i++) {
-                points.push(poly.segments[i].point);
+
+            switch(shape) {
+                case 'square':
+                var topLeft = new Point(view.center.x - radius/2, view.center.y - radius/2);
+                var square = new Path.Rectangle(topLeft, new Size(radius, radius));
+                square.remove();
+
+                points = pointsForShape(square.segments, numPoints);
+                break;
+                default:
+                var poly = new Path.RegularPolygon(view.center, numPoints, radius);
+                poly.remove();
+                for (var i = 0; i < poly.segments.length; i++) {
+                    points.push(poly.segments[i].point);
+                }
             }
+            
             for (var i = 0; i < points.length; i++) {
                 var path = new Path([points[i], points[(i+bridge)%points.length]]);
                 path.strokeColor = strokeColor;
@@ -35,13 +73,14 @@
         window.globals = {};
         window.onload = function () {
             var drawWithParameters = function () {
+                let shape = document.getElementById('shape').value;
                 let background = document.getElementById('background').value;
                 let radius = Number(document.getElementById('radius').value);
                 let numPoints = Number(document.getElementById('num_points').value);
                 let bridge = Number(document.getElementById('bridge').value);
                 let strokeColor = document.getElementById('stroke_color').value;
                 let strokeWidth = Number(document.getElementById('stroke_width').value);
-                window.globals.draw(background, radius, numPoints, bridge, strokeColor, strokeWidth);
+                window.globals.draw(shape, background, radius, numPoints, bridge, strokeColor, strokeWidth);
             };
             document.getElementById('submit').onclick = drawWithParameters;
             drawWithParameters();
@@ -79,11 +118,18 @@
             <div class="pure-form pure-form-aligned">
                 <fieldset>
                     <div class="pure-control-group">
+                        <label for="shape">Shape:</label>
+                        <select id="shape" name="shape">
+                            <option value="circle" selected>Circle</option>
+                            <option value="square">Square</option>
+                          </select>
+                    </div>
+                    <div class="pure-control-group">
                         <label for="background">Background:</label>
                         <input type="text" id="background" name="background" value="black"></input>
                     </div>
                     <div class="pure-control-group">
-                        <label for="radius">Radius:</label>
+                        <label for="radius">Radius/Side:</label>
                         <input type="number" id="radius" name="radius" value="300"></input>
                     </div>
                     <div class="pure-control-group">
