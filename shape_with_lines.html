@@ -41,22 +41,7 @@
             return points;
         }
 
-        globals.draw = function(clear, shape, background, radius, numPoints, bridge, strokeColor, strokeWidth) {
-            if (clear) {
-                project.activeLayer.removeChildren();
-            } else {
-                // change only background
-                // first child is background
-                if (project.activeLayer.children.length > 0) {
-                    project.activeLayer.children[0].remove();
-                }
-            }
-
-            // setup background
-            var rect = Shape.Rectangle(new Point(0,0), view.viewSize);
-            rect.fillColor = background;
-            project.activeLayer.insertChild(0, rect);
-    
+        globals.draw = function(shape, radius, numPoints, bridge, strokeColor, strokeWidth) {
             var points = [];
 
             switch(shape) {
@@ -81,22 +66,31 @@
                 path.strokeCap = 'round';
             }
         }
+
+        globals.clear = function(background) {
+            project.activeLayer.removeChildren();
+            var rect = Shape.Rectangle(new Point(0,0), view.viewSize);
+            rect.fillColor = background;
+        }
     </script>
     <script type="text/javascript">
         window.globals = {};
         window.onload = function () {
             var drawWithParameters = function () {
-                let clear = document.getElementById('clear').checked;
                 let shape = document.getElementById('shape').value;
-                let background = document.getElementById('background').value;
                 let radius = Number(document.getElementById('radius').value);
                 let numPoints = Number(document.getElementById('num_points').value);
                 let bridge = Number(document.getElementById('bridge').value);
                 let strokeColor = document.getElementById('stroke_color').value;
                 let strokeWidth = Number(document.getElementById('stroke_width').value);
-                window.globals.draw(clear, shape, background, radius, numPoints, bridge, strokeColor, strokeWidth);
+                window.globals.draw(shape, radius, numPoints, bridge, strokeColor, strokeWidth);
             };
             document.getElementById('submit').onclick = drawWithParameters;
+            document.getElementById('clear').onclick = function(){
+                let background = document.getElementById('background').value;
+                window.globals.clear(background);
+            };
+
             drawWithParameters();
         };
     </script>
@@ -118,6 +112,10 @@
         canvas {
             border-style: groove;
         }
+        
+        div.myform {
+            border-bottom: 1px solid #ddd;
+        }
     </style>
 </head>
 
@@ -129,12 +127,8 @@
     </p>
     <div id="layout" class="pure-g">
         <div class="sidebar pure-u-1 pure-u-md-1-4">
-            <div class="pure-form pure-form-aligned">
+            <div class="pure-form pure-form-aligned myform">
                 <fieldset>
-                    <div class="pure-control-group">
-                        <label for="clear">Clear Previous Image:</label>
-                        <input type="checkbox" id="clear" name="clear" value="true"></input>
-                    </div>
                     <div class="pure-control-group">
                         <label for="shape">Shape:</label>
                         <select id="shape" name="shape">
@@ -142,10 +136,6 @@
                             <option value="square">Square</option>
                             <option value="triangle">Triangle</option>
                           </select>
-                    </div>
-                    <div class="pure-control-group">
-                        <label for="background">Background:</label>
-                        <input type="text" id="background" name="background" value="black"></input>
                     </div>
                     <div class="pure-control-group">
                         <label for="radius">Radius:</label>
@@ -169,6 +159,17 @@
                     </div>
                     <div class="pure-controls">
                         <button class="pure-button" type="number" id="submit">Submit</button>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="pure-form pure-form-aligned myform">
+                <fieldset>
+                    <div class="pure-control-group">
+                        <label for="background">Background:</label>
+                        <input type="text" id="background" name="background" value="black"></input>
+                    </div>
+                    <div class="pure-controls">
+                        <button class="pure-button" type="number" id="clear">Clear</button>
                     </div>
                 </fieldset>
             </div>
