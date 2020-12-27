@@ -114,6 +114,7 @@
             let strokeWidth = Math.floor(Math.random() * 4 * (radius/200)) + 1;
             drawAndLog(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
         }
+
         window.onload = function () {
             var drawWithParameters = function () {
                 let sides = Number(document.getElementById('sides').value);
@@ -126,16 +127,27 @@
                 drawAndLog(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
             };
             document.getElementById('submit').onclick = drawWithParameters;
-            document.getElementById('clear').onclick = function(){
+            var clear = function() {
                 let background = document.getElementById('background').value;
                 window.globals.clear(background);
                 clearSteps();
                 appendToSteps("background:" + background);
-            };
+            }
+            document.getElementById('clear').onclick = clear;
             document.getElementById('randomdraw').onclick = function(){
                 randomDraw();
             };
-
+            document.getElementById('startslideshow').onclick = function(){
+                window.globals.startSlideShow = setInterval(function(){
+                    clear();
+                    randomDraw();
+                }, 3000); 
+            };
+            document.getElementById('stopslideshow').onclick = function(){
+                if (window.globals.startSlideShow) {
+                    clearInterval(window.globals.startSlideShow);
+                }
+            }
             drawWithParameters();
         };
     </script>
@@ -160,6 +172,10 @@
         
         div.borderbottom {
             border-bottom: 1px solid #ddd;
+        }
+
+        button.mybutton {
+            margin: 1em;
         }
     </style>
 </head>
@@ -189,6 +205,10 @@
                         <button class="pure-button" type="number" id="randomdraw">Random Draw</button>
                     </div>
                 </fieldset>
+            </div>
+            <div class="borderbottom">
+                <button class="pure-button mybutton" type="number" id="startslideshow">Start Slideshow</button>
+                <button class="pure-button mybutton" type="number" id="stopslideshow">Stop Slideshow</button>
             </div>
             <div class="pure-form pure-form-aligned borderbottom">
                 <fieldset>
