@@ -76,6 +76,19 @@
     </script>
     <script type="text/javascript">
         window.globals = {};
+
+        function appendToSteps(text) {
+            var node = document.createElement("LI");                 
+            var textnode = document.createTextNode(text);         
+            node.appendChild(textnode);                              
+            document.getElementById("steps").appendChild(node);  
+        }
+        function clearSteps() {
+            var steps = document.getElementById("steps");
+            while (steps.firstChild) {
+                steps.removeChild(steps.firstChild);
+            }
+        }
         window.onload = function () {
             var drawWithParameters = function () {
                 let sides = Number(document.getElementById('sides').value);
@@ -86,11 +99,17 @@
                 let strokeColor = document.getElementById('stroke_color').value;
                 let strokeWidth = Number(document.getElementById('stroke_width').value);
                 window.globals.draw(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
+                var step = "sides:" + sides + " outline:" + outline + " radius:" 
+                    + radius + " numPoints:" + numPoints + " bridge:" + bridge 
+                    + " strokeColor:" + strokeColor + " strokeWidth:" + strokeWidth;
+                appendToSteps(step);
             };
             document.getElementById('submit').onclick = drawWithParameters;
             document.getElementById('clear').onclick = function(){
                 let background = document.getElementById('background').value;
                 window.globals.clear(background);
+                clearSteps();
+                appendToSteps("background:" + background);
             };
 
             drawWithParameters();
@@ -174,6 +193,10 @@
                         <button class="pure-button" type="number" id="clear">Clear</button>
                     </div>
                 </fieldset>
+            </div>
+            <div class="borderbottom">
+                Steps
+                <ol id="steps"></ol>
             </div>
         </div>
         <div class="content pure-u-1 pure-u-md-3-4">
