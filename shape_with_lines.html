@@ -23,9 +23,12 @@
             return points;
         }
 
-        function pointsForShape(sides, radius, numPoints) {
+        function pointsForShape(style, sides, outline, radius, numPoints) {
             var poly = new Path.RegularPolygon(view.center, sides, radius);
-            poly.remove();
+            poly.style = style;
+            if (!outline) {
+                poly.remove();
+            }
             var segments = poly.segments;
             var points = [];
 
@@ -41,24 +44,31 @@
             return points;
         }
 
-        globals.draw = function(sides, radius, numPoints, bridge, strokeColor, strokeWidth) {
-            var points = [];
+        globals.draw = function(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth) {
+            console.log(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
+            var style = {
+                strokeColor: strokeColor,
+                strokeWidth: strokeWidth
+            };
 
+            var points = [];
             if (sides < 3) {
+                if (outline) {
+                    var circle = Path.Circle(view.center, radius);
+                    circle.style = style;
+                }
                 var poly = new Path.RegularPolygon(view.center, numPoints, radius);
                 poly.remove();
                 for (var i = 0; i < poly.segments.length; i++) {
                     points.push(poly.segments[i].point);
                 }
             } else {
-                points = pointsForShape(sides, radius, numPoints);
+                points = pointsForShape(style, sides, outline, radius, numPoints);
             }
-            
             
             for (var i = 0; i < points.length; i++) {
                 var path = new Path([points[i], points[(i+bridge)%points.length]]);
-                path.strokeColor = strokeColor;
-                path.strokeWidth = strokeWidth;
+                path.style = style;
                 path.strokeCap = 'round';
             }
         }
@@ -74,12 +84,13 @@
         window.onload = function () {
             var drawWithParameters = function () {
                 let sides = Number(document.getElementById('sides').value);
+                let outline = document.getElementById('outline').checked;
                 let radius = Number(document.getElementById('radius').value);
                 let numPoints = Number(document.getElementById('num_points').value);
                 let bridge = Number(document.getElementById('bridge').value);
                 let strokeColor = document.getElementById('stroke_color').value;
                 let strokeWidth = Number(document.getElementById('stroke_width').value);
-                window.globals.draw(sides, radius, numPoints, bridge, strokeColor, strokeWidth);
+                window.globals.draw(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
             };
             document.getElementById('submit').onclick = drawWithParameters;
             document.getElementById('clear').onclick = function(){
@@ -128,6 +139,10 @@
                     <div class="pure-control-group">
                         <label for="sides">Sides of polygon:</label>
                         <input type="number" id="sides" name="sides" value="0"></input>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="outline">Draw Outline</label>
+                        <input type="checkbox" id="outline" name="outline" value="true"></input>
                     </div>
                     <div class="pure-control-group">
                         <label for="radius">Radius:</label>
