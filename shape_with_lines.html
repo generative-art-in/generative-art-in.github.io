@@ -41,23 +41,19 @@
             return points;
         }
 
-        globals.draw = function(shape, radius, numPoints, bridge, strokeColor, strokeWidth) {
+        globals.draw = function(sides, radius, numPoints, bridge, strokeColor, strokeWidth) {
             var points = [];
 
-            switch(shape) {
-                case 'square':
-                points = pointsForShape(4, radius, numPoints);
-                break;
-                case 'triangle':
-                points = pointsForShape(3, radius, numPoints);
-                break;
-                default:
+            if (sides < 3) {
                 var poly = new Path.RegularPolygon(view.center, numPoints, radius);
                 poly.remove();
                 for (var i = 0; i < poly.segments.length; i++) {
                     points.push(poly.segments[i].point);
                 }
+            } else {
+                points = pointsForShape(sides, radius, numPoints);
             }
+            
             
             for (var i = 0; i < points.length; i++) {
                 var path = new Path([points[i], points[(i+bridge)%points.length]]);
@@ -77,13 +73,13 @@
         window.globals = {};
         window.onload = function () {
             var drawWithParameters = function () {
-                let shape = document.getElementById('shape').value;
+                let sides = Number(document.getElementById('sides').value);
                 let radius = Number(document.getElementById('radius').value);
                 let numPoints = Number(document.getElementById('num_points').value);
                 let bridge = Number(document.getElementById('bridge').value);
                 let strokeColor = document.getElementById('stroke_color').value;
                 let strokeWidth = Number(document.getElementById('stroke_width').value);
-                window.globals.draw(shape, radius, numPoints, bridge, strokeColor, strokeWidth);
+                window.globals.draw(sides, radius, numPoints, bridge, strokeColor, strokeWidth);
             };
             document.getElementById('submit').onclick = drawWithParameters;
             document.getElementById('clear').onclick = function(){
@@ -130,12 +126,8 @@
             <div class="pure-form pure-form-aligned myform">
                 <fieldset>
                     <div class="pure-control-group">
-                        <label for="shape">Shape:</label>
-                        <select id="shape" name="shape">
-                            <option value="circle" selected>Circle</option>
-                            <option value="square">Square</option>
-                            <option value="triangle">Triangle</option>
-                          </select>
+                        <label for="sides">Sides of polygon:</label>
+                        <input type="number" id="sides" name="sides" value="0"></input>
                     </div>
                     <div class="pure-control-group">
                         <label for="radius">Radius:</label>
