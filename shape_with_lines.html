@@ -13,13 +13,11 @@
         function splitLine(leftEnd, rightEnd, numPoints) {
             var points = [];
 
-            var incr = (rightEnd - leftEnd)/(numPoints+1);
-            var nextPoint = leftEnd;
+            var incr = (rightEnd - leftEnd)/numPoints;
             for (var i = 0; i < numPoints; i++) {
-                nextPoint = nextPoint + incr;
+                nextPoint = leftEnd + incr * i;
                 points.push(nextPoint);
             }
-            console.log(points);
             return points;
         }
 
@@ -36,10 +34,7 @@
             for (var i = 0; i < segments.length; i++) {
                 var left = segments[i].point;
                 var right = segments[(i + 1)%segments.length].point;
-                console.log("left: "+left);
-                console.log("right: "+right);
-                points.push(left);
-                points = points.concat(splitLine(left, right, pointsOnEachSide - 1));
+                points = points.concat(splitLine(left, right, pointsOnEachSide));
             }
             return points;
         }
@@ -48,7 +43,8 @@
             console.log(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
             var style = {
                 strokeColor: strokeColor,
-                strokeWidth: strokeWidth
+                strokeWidth: strokeWidth,
+                strokeCap: 'round'
             };
 
             var points = [];
@@ -69,7 +65,6 @@
             for (var i = 0; i < points.length; i++) {
                 var path = new Path([points[i], points[(i+bridge)%points.length]]);
                 path.style = style;
-                path.strokeCap = 'round';
             }
         }
 
@@ -120,7 +115,7 @@
             border-style: groove;
         }
         
-        div.myform {
+        div.borderbottom {
             border-bottom: 1px solid #ddd;
         }
     </style>
@@ -134,7 +129,7 @@
     </p>
     <div id="layout" class="pure-g">
         <div class="sidebar pure-u-1 pure-u-md-1-4">
-            <div class="pure-form pure-form-aligned myform">
+            <div class="pure-form pure-form-aligned borderbottom">
                 <fieldset>
                     <div class="pure-control-group">
                         <label for="sides">Sides of polygon:</label>
@@ -169,7 +164,7 @@
                     </div>
                 </fieldset>
             </div>
-            <div class="pure-form pure-form-aligned myform">
+            <div class="pure-form pure-form-aligned borderbottom">
                 <fieldset>
                     <div class="pure-control-group">
                         <label for="background">Background:</label>
