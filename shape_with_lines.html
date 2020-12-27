@@ -89,6 +89,31 @@
                 steps.removeChild(steps.firstChild);
             }
         }
+        function getRandomColor() {
+        var letters = '0123456789ABCDEF';
+        var color = '#';
+        for (var i = 0; i < 6; i++) {
+            color += letters[Math.floor(Math.random() * 16)];
+        }
+        return color;
+        }
+        function drawAndLog(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth) {
+            window.globals.draw(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
+                var step = "sides:" + sides + " outline:" + outline + " radius:" 
+                    + radius + " numPoints:" + numPoints + " bridge:" + bridge 
+                    + " strokeColor:" + strokeColor + " strokeWidth:" + strokeWidth;
+                appendToSteps(step);
+        }
+        function randomDraw() {
+            let sides = Math.floor(Math.random() * 20) + 1;
+            let outline = (Math.random() > 0.5);
+            let radius = Math.floor(Math.random() * 300) + 100;
+            let numPoints = Math.floor(radius * Math.random() * 0.75) + 1;
+            let bridge = Math.floor(Math.random() * (numPoints-2)) + 1;
+            let strokeColor = getRandomColor();
+            let strokeWidth = Math.floor(Math.random() * 3) + 1;
+            drawAndLog(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
+        }
         window.onload = function () {
             var drawWithParameters = function () {
                 let sides = Number(document.getElementById('sides').value);
@@ -98,11 +123,7 @@
                 let bridge = Number(document.getElementById('bridge').value);
                 let strokeColor = document.getElementById('stroke_color').value;
                 let strokeWidth = Number(document.getElementById('stroke_width').value);
-                window.globals.draw(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
-                var step = "sides:" + sides + " outline:" + outline + " radius:" 
-                    + radius + " numPoints:" + numPoints + " bridge:" + bridge 
-                    + " strokeColor:" + strokeColor + " strokeWidth:" + strokeWidth;
-                appendToSteps(step);
+                drawAndLog(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
             };
             document.getElementById('submit').onclick = drawWithParameters;
             document.getElementById('clear').onclick = function(){
@@ -110,6 +131,9 @@
                 window.globals.clear(background);
                 clearSteps();
                 appendToSteps("background:" + background);
+            };
+            document.getElementById('randomdraw').onclick = function(){
+                randomDraw();
             };
 
             drawWithParameters();
@@ -151,6 +175,24 @@
             <div class="pure-form pure-form-aligned borderbottom">
                 <fieldset>
                     <div class="pure-control-group">
+                        <label for="background">Background:</label>
+                        <input type="text" id="background" name="background" value="black"></input>
+                    </div>
+                    <div class="pure-controls">
+                        <button class="pure-button" type="number" id="clear">Clear</button>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="pure-form pure-form-aligned borderbottom">
+                <fieldset>
+                    <div class="pure-controls">
+                        <button class="pure-button" type="number" id="randomdraw">Random Draw</button>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="pure-form pure-form-aligned borderbottom">
+                <fieldset>
+                    <div class="pure-control-group">
                         <label for="sides">Sides of polygon:</label>
                         <input type="number" id="sides" name="sides" value="0"></input>
                     </div>
@@ -180,17 +222,6 @@
                     </div>
                     <div class="pure-controls">
                         <button class="pure-button" type="number" id="submit">Submit</button>
-                    </div>
-                </fieldset>
-            </div>
-            <div class="pure-form pure-form-aligned borderbottom">
-                <fieldset>
-                    <div class="pure-control-group">
-                        <label for="background">Background:</label>
-                        <input type="text" id="background" name="background" value="black"></input>
-                    </div>
-                    <div class="pure-controls">
-                        <button class="pure-button" type="number" id="clear">Clear</button>
                     </div>
                 </fieldset>
             </div>
