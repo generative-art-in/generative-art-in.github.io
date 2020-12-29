@@ -106,12 +106,12 @@
         }
         function randomDraw() {
             let sides = Math.floor(Math.random() * 20) + 1;
-            let outline = (Math.random() > 0.5);
-            let radius = Math.floor(Math.random() * 300) + 100;
+            let outline = false;
+            let radius = 300;
             let numPoints = Math.floor(radius * Math.random() * 0.75) + sides + 2;
-            let bridge = Math.floor(Math.random() * (numPoints-2)) + 1;
+            let bridge = Math.floor(Math.random() * numPoints/2) + 10;
             let strokeColor = getRandomColor();
-            let strokeWidth = Math.floor(Math.random() * 4 * (radius/200)) + 1;
+            let strokeWidth = Math.floor(Math.random() * 3) + 1;
             drawAndLog(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
         }
 
