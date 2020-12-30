@@ -108,8 +108,8 @@
             let sides = Math.floor(Math.random() * 20) + 1;
             let outline = false;
             let radius = 300;
-            let numPoints = Math.floor(radius * Math.random() * 0.75) + sides + 2;
-            let bridge = Math.floor(Math.random() * numPoints/2) + 10;
+            let numPoints = 100 + Math.floor(Math.random() * 200);
+            let bridge = 50 + Math.floor(Math.random() * numPoints/2);
             let strokeColor = getRandomColor();
             let strokeWidth = Math.floor(Math.random() * 3) + 1;
             drawAndLog(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
