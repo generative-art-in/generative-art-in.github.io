@@ -86,8 +86,8 @@
         function randomDraw() {
             let times = Math.round(Math.random())*2 + 1;
             for (var i = 0; i < times; i++){
-                let k = Math.random();
-                let l = Math.random();
+                let k = Math.round(Math.random()*100)/100;
+                let l = Math.round(Math.random()*100)/100;
                 let R = 300;
                 let strokeColor = getRandomColor();
                 let strokeWidth = Math.floor(Math.random() * 2) + 1;
