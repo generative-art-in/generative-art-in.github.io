@@ -35,6 +35,8 @@
         }
         globals.draw = function(k, l, R, strokeColor, strokeWidth) {
             console.log(k,l,R,strokeColor, strokeWidth);
+            k = Math.round(k*100)/100;
+            l = Math.round(l*100)/100;
             var style = {
                 strokeColor: strokeColor,
                 strokeWidth: strokeWidth,
@@ -84,11 +86,11 @@
         function randomDraw() {
             let times = Math.round(Math.random())*2 + 1;
             for (var i = 0; i < times; i++){
-                let k = Math.round(Math.random()*100)/100;
-                let l = Math.round(Math.random()*100)/100;
+                let k = Math.random();
+                let l = Math.random();
                 let R = 300;
                 let strokeColor = getRandomColor();
-                let strokeWidth = Math.floor(Math.random() * 3) + 1;
+                let strokeWidth = Math.floor(Math.random() * 2) + 1;
                 drawAndLog(k, l, R, strokeColor, strokeWidth);
             }
         }
