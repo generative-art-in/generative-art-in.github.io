@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Generative Art - Shapes with lines</title>
+    <title>Generative Art</title>
     <link rel="icon" type="image/png" href="images/favicon.png" />
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,73 +10,51 @@
     <script type="text/javascript" src="js/paper-full.min.js"></script>
     <!-- Define inlined PaperScript associate it with myCanvas -->
     <script type="text/paperscript" canvas="myCanvas">
-        function splitLine(leftEnd, rightEnd, numPoints) {
-            var points = [];
-
-            var incr = (rightEnd - leftEnd)/numPoints;
-            for (var i = 0; i < numPoints; i++) {
-                nextPoint = leftEnd + incr * i;
-                points.push(nextPoint);
-            }
-            return points;
-        }
-
-        function pointsForShape(style, sides, outline, radius, numPoints) {
-            var poly = new Path.RegularPolygon(view.center, sides, radius);
-            poly.style = style;
-            if (!outline) {
-                poly.remove();
-            }
-            var segments = poly.segments;
-            var points = [];
-
-            var pointsOnEachSide = numPoints/sides;
-            for (var i = 0; i < segments.length; i++) {
-                var left = segments[i].point;
-                var right = segments[(i + 1)%segments.length].point;
-                points = points.concat(splitLine(left, right, pointsOnEachSide));
-            }
-            return points;
-        }
-
-        globals.draw = function(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth) {
-            console.log(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
-            var style = {
-                strokeColor: strokeColor,
-                strokeWidth: strokeWidth,
-                strokeCap: 'round'
-            };
-
-            var points = [];
-            if (sides < 3) {
-                if (outline) {
-                    var circle = Path.Circle(view.center, radius);
-                    circle.style = style;
-                }
-                var poly = new Path.RegularPolygon(view.center, numPoints, radius);
-                poly.remove();
-                for (var i = 0; i < poly.segments.length; i++) {
-                    points.push(poly.segments[i].point);
-                }
-            } else {
-                points = pointsForShape(style, sides, outline, radius, numPoints);
-            }
-            
-            for (var i = 0; i < points.length; i++) {
-                var path = new Path([points[i], points[(i+bridge)%points.length]]);
-                path.style = style;
-            }
-        }
-
         globals.clear = function(background) {
             project.activeLayer.removeChildren();
             var rect = Shape.Rectangle(new Point(0,0), view.viewSize);
             rect.fillColor = background;
         }
+        function spirex(R, l, k, t) {
+            return R * ((1-k)*Math.cos(t) + l*k*Math.cos((1-k)*t/k))
+        }
+        function spirey(R, l,k,t) {
+            return R * ((1-k)*Math.sin(t) - l*k*Math.sin((1-k)*t/k))
+        }
+        function simpleDenom(num, denom) {
+            var nr = Math.round(num*100);
+            var dr = Math.round(denom*100);
+            // convert to lowest fractions
+            for (var i = 2; i <= nr && i <= dr; i++) {
+                if (nr%i == 0 && dr%i == 0) {
+                    nr = nr/i;
+                    dr = dr/i;
+                }
+            }
+            return dr;
+        }
+        globals.draw = function(k, l, R, strokeColor, strokeWidth) {
+            console.log(k,l,R,strokeColor, strokeWidth);
+            var style = {
+                strokeColor: strokeColor,
+                strokeWidth: strokeWidth,
+                strokeCap: 'round'
+            };
+            var drawing = new Path();
+            drawing.style = style;
+            var limit = 2*Math.PI*simpleDenom(1 - k, k);
+            for (var i = 0.0; i <= limit; i+=0.1) {
+                
+                var x = view.center.x + spirex(R, l, k, i);
+                var y = view.center.y + spirey(R, l, k, i);
+                drawing.add(new Point(x,y));
+            }
+            drawing.closed = true;
+            drawing.smooth();
+        }
     </script>
     <script type="text/javascript">
         window.globals = {};
-
         function appendToSteps(text) {
             var node = document.createElement("LI");                 
             var textnode = document.createTextNode(text);         
@@ -89,6 +67,12 @@
                 steps.removeChild(steps.firstChild);
             }
         }
+        function drawAndLog(k, l, R, strokeColor, strokeWidth) {
+            window.globals.draw(k, l, R, strokeColor, strokeWidth);
+                var step = "k:" + k + " l:" + l + " R:" 
+                    + R + " strokeColor:" + strokeColor + " strokeWidth:" + strokeWidth;
+                appendToSteps(step);
+        }
         function getRandomColor() {
             var letters = '0123456789ABCDEF';
             var color = '#';
@@ -97,36 +81,28 @@
             }
             return color;
         }
-        function drawAndLog(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth) {
-            window.globals.draw(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
-                var step = "sides:" + sides + " outline:" + outline + " radius:" 
-                    + radius + " numPoints:" + numPoints + " bridge:" + bridge 
-                    + " strokeColor:" + strokeColor + " strokeWidth:" + strokeWidth;
-                appendToSteps(step);
-        }
         function randomDraw() {
-            let sides = Math.floor(Math.random() * 20) + 1;
-            let outline = false;
-            let radius = 300;
-            let numPoints = 100 + Math.floor(Math.random() * 200);
-            let bridge = 50 + Math.floor(Math.random() * numPoints/2);
-            let strokeColor = getRandomColor();
-            let strokeWidth = Math.floor(Math.random() * 3) + 1;
-            drawAndLog(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
+            let times = Math.round(Math.random())*2 + 1;
+            for (var i = 0; i < times; i++){
+                let k = Math.round(Math.random()*100)/100;
+                let l = Math.round(Math.random()*100)/100;
+                let R = 300;
+                let strokeColor = getRandomColor();
+                let strokeWidth = Math.floor(Math.random() * 3) + 1;
+                drawAndLog(k, l, R, strokeColor, strokeWidth);
+            }
         }
-
         window.onload = function () {
             var drawWithParameters = function () {
-                let sides = Number(document.getElementById('sides').value);
-                let outline = document.getElementById('outline').checked;
-                let radius = Number(document.getElementById('radius').value);
-                let numPoints = Number(document.getElementById('num_points').value);
-                let bridge = Number(document.getElementById('bridge').value);
+                let R = Number(document.getElementById('radius').value);
+                let k = Number(document.getElementById('r_ratio').value);
+                let l = Number(document.getElementById('p_ratio').value);
                 let strokeColor = document.getElementById('stroke_color').value;
                 let strokeWidth = Number(document.getElementById('stroke_width').value);
-                drawAndLog(sides, outline, radius, numPoints, bridge, strokeColor, strokeWidth);
+                drawAndLog(k, l, R, strokeColor, strokeWidth);
             };
             document.getElementById('submit').onclick = drawWithParameters;
+
             var clear = function() {
                 let background = document.getElementById('background').value;
                 window.globals.clear(background);
@@ -187,12 +163,13 @@
 </head>
 
 <body>
-    <h1>Generative Art - Shapes with lines</h1>
-    <p>
-        Generating artwork by drawing lines across equal spaced points on a shape like circle/square/triangle. Bridge
-        is the gap between points across which line has to be drawn.
-    </p>
-    <h2><a href="shape_with_lines_gallery.html">Gallery</a></h2>
+
+    <h1>Spirograph</h1>
+
+    <p>Generate artwork using programs. We will explore <a href="https://en.wikipedia.org/wiki/Spirograph">spirograph</a> 
+        from within the browser. There are several parameters exposed like background, stroke color which can be changed to 
+        obtain various designs.</p>
+    
     <div id="layout" class="pure-g">
         <div class="sidebar pure-u-1 pure-u-md-1-4">
             <div class="pure-form pure-form-aligned borderbottom">
@@ -220,24 +197,16 @@
             <div class="pure-form pure-form-aligned borderbottom">
                 <fieldset>
                     <div class="pure-control-group">
-                        <label for="sides">Sides of polygon:</label>
-                        <input type="number" id="sides" name="sides" value="0"></input>
-                    </div>
-                    <div class="pure-control-group">
-                        <label for="outline">Draw Outline</label>
-                        <input type="checkbox" id="outline" name="outline" value="true"></input>
-                    </div>
-                    <div class="pure-control-group">
-                        <label for="radius">Radius:</label>
+                        <label for="radius">Radius (R):</label>
                         <input type="number" id="radius" name="radius" value="300"></input>
                     </div>
                     <div class="pure-control-group">
-                        <label for="num_points">Number of Points:</label>
-                        <input type="number" id="num_points" name="num_points" value="100"></input>
+                        <label for="r_ratio">Ratio of inner to outer radius (0 &lt; k &lt; 1):</label>
+                        <input type="text" id="r_ratio" name="r_ratio" value="0.63"></input>
                     </div>
                     <div class="pure-control-group">
-                        <label for="bridge">Bridge:</label>
-                        <input type="number" id="bridge" name="bridge" value="33"></input>
+                        <label for="p_ratio">Distance of drawing point from inner circle center(0 &lt; l &lt; 1):</label>
+                        <input type="text" id="p_ratio" name="p_ratio" value="0.9"></input>
                     </div>
                     <div class="pure-control-group">
                         <label for="stroke_color">Stroke Color:</label>
@@ -261,7 +230,7 @@
             <canvas id="myCanvas"></canvas>
         </div>
     </div>
-    <p>For any feedback on this page, please send an email to <img src="images/generative-art-email.png" /></p>
+    <p>For any feedback on this page, please send an email to <img src="images/generative-art-email.png"/></p>
 </body>
 
 </html>
