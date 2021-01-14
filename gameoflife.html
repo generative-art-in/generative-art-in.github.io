@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Game Of Life</title>
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="text/javascript">
+        var universe = [];
+        function isAlive(virtual, row, col) {
+            if (row < 0 || row >= virtual.length || col < 0 || col >= virtual[0].length) {
+                return false;
+            }
+            return virtual[row][col];
+        }
+        function determineStatus(neighborsAlive) {
+            switch(neighborsAlive){
+                case 0:
+                case 1:
+                    return -1;
+                case 2:
+                    return 0;
+                case 3:
+                    return 1;
+                case 4:
+                    return -1;
+                default:
+                    return -1;
+            }
+        }
+        function getAliveNeighbors(virtual, row, col) {
+            var narrx = [-1, 0, 1,-1, 1,-1, 0, 1];
+            var narry = [-1,-1,-1, 0, 0, 1, 1, 1];
+            var neighborsAlive = 0;
+            for (var i = 0; i < 8; i++) {
+                var nrow = row + narrx[i];
+                var ncol = col + narry[i];
+                if (isAlive(virtual, nrow, ncol)) {
+                    neighborsAlive++;
+                }
+            }
+            return neighborsAlive;
+        }
+        function getStatus(virtual, row, col) {
+            var neighborsAlive = getAliveNeighbors(virtual, row, col);
+            var status = determineStatus(neighborsAlive);
+            
+            switch(status) {
+                case -1:
+                    return 0;
+                case 0:
+                    if (isAlive(virtual,row,col)){
+                        return 1;
+                    } else {
+                        return 0;
+                    }
+                default:
+                    return 1;
+            }
+        }
+        function setStatus(virtual, row, col, life) {
+            if (row < 0 || row >= virtual.length || col < 0 || col >= virtual[0].length) {
+                return false;
+            }
+            virtual[row][col] = life;
+        } 
+        function initializeArray(numRows, numCols) {
+            var result = [];
+            for (var i = 0; i < numRows; i++) {
+                var row = [];
+                for(var j = 0; j < numCols; j++) {
+                    row[j] = 0;
+                }
+                result[i] = row;
+            }
+            return result;
+        }
+        var iteration = 0;
+        function oneIteration(canvas, context) {
+            iteration++;
+            console.log("Iteration:", iteration);
+            var cur = universe;
+            var newData = initializeArray(cur.length, cur[0].length);
+            for (var i = 0; i < cur.length; i++) {
+                for (var j = 0; j < cur[i].length; j++) {
+                    var life = getStatus(cur, i, j);
+                    newData[i][j] = life;
+                    
+                }
+            }
+            
+            universe = newData;
+            projectImage(canvas, context, universe);
+        }
+        function createPoint(imgData, pointWidthX, pointWidthY, x, y, color) {
+            // console.log(pointWidthX, pointWidthY, x, y, color);
+            var startX = x*pointWidthX;
+            var startY = y*pointWidthY;
+            for (var i = 0; i < pointWidthX; i++) {
+                for (var j = 0; j < pointWidthY; j++) {
+                    var curX = startX + i;
+                    var curY = startY + j;
+                    var pos = curY*imgData.width + curX;
+                    imgData.data[pos*4] = color[0];
+                    imgData.data[pos*4 + 1] = color[1];
+                    imgData.data[pos*4 + 2] = color[2];
+                    imgData.data[pos*4 + 3] = color[3];
+                }
+            }
+        }
+        function projectImage(canvas, context, virtual) {
+            var psx = canvas.width/virtual[0].length;
+            var psy = canvas.height/virtual.length;
+            var imgData = context.createImageData(canvas.width, canvas.height);
+            var side = virtual.length;
+            for (var i = 0; i < virtual.length; i++) {
+                for (var j = 0; j < virtual[i].length; j++) {
+                    if (virtual[i][j] == 1) {
+                        // console.log(c);
+                        createPoint(imgData, psx, psy, j, i, [255,255,255,255]);
+                    } else {
+                        createPoint(imgData, psx, psy, j, i, [0,0,0,255]);
+                    }
+                }
+            }
+            context.putImageData(imgData, 0, 0);
+        }
+        function populateRandom(virtual, percentPoints){
+            var numCells = virtual.length * virtual[0].length;
+            var numPoints = Math.floor(numCells*percentPoints/100);
+            for (var i = 0; i < numPoints; i++) {
+                var pos = Math.floor(Math.random() * numCells);
+                var row = Math.floor(pos/virtual[0].length);
+                var col = pos%virtual[0].length;
+                virtual[row][col] = 1;
+            }
+        }
+        function populateSymmetricRandom(virtual, percentPoints) {
+            var numCells = virtual.length * virtual[0].length;
+            var n = virtual.length;
+            var numPoints = Math.floor(numCells*percentPoints/100);
+            var curPoints = 0;
+            var limit = Math.floor((virtual.length -1)/2)+1;
+            while(curPoints < numPoints) {
+                var i = Math.floor((Math.random()*limit));
+                var j = Math.floor((Math.random()*limit));
+                if (i>j) { //swap
+                    var tmp = i;
+                    i = j;
+                    j = tmp;
+                }
+                var px = [i, j, i    , j    , n-j-1, n-i-1, n-j-1, n-i-1];
+                var py = [j, i, n-j-1, n-i-1, i    , j    , n-i-1, n-j-1];
+                for (var a=0; a < px.length; a++) {
+                    if (virtual[px[a]][py[a]] != 1) {
+                        virtual[px[a]][py[a]] = 1;
+                        curPoints++;
+                    }
+                }
+            }
+        }
+        function reset(canvas, context, popfunc, cells, population) {
+            var percentPoints = population;
+            if (percentPoints >= 100 || percentPoints <= 0) {
+                alert("Invalid Population percentage ", population);
+                percentPoints = 50;
+            }
+            if (cells <= 0 || cells > 800) {
+                cells = 100;
+            }
+            var virtualWidth = cells;
+            var virtualHeight = cells;
+            
+            clear(canvas, context);
+            universe = initializeArray(virtualHeight, virtualWidth);
+            popfunc(universe, percentPoints);
+
+            projectImage(canvas, context, universe);
+            console.log("Done drawing");
+        }
+        function clear(canvas, context) {
+            context.fillStyle = "black";
+            context.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        window.onload = function () {
+            var drawWithParameters = function (popfunc) {
+                let cells = Number(document.getElementById('cells').value);
+                let population = Number(document.getElementById('population').value);
+                var canvas = document.getElementById('myCanvas');
+                var context = canvas.getContext('2d');
+                reset(canvas, context, popfunc, cells, population);
+            };
+            var symmetricDraw = function() {
+                drawWithParameters(populateSymmetricRandom);
+            };
+            var randomDraw = function() {
+                drawWithParameters(populateRandom);
+            }
+
+            document.getElementById('submit').onclick = symmetricDraw;
+            document.getElementById('randomdraw').onclick = randomDraw;
+
+            drawWithParameters(populateSymmetricRandom);
+            var startSlideShow;
+            document.getElementById('startslideshow').onclick = function(){
+                
+                startSlideShow = setInterval(function(){
+                    var canvas = document.getElementById("myCanvas");
+                    var context = canvas.getContext("2d");
+                    oneIteration(canvas, context);
+                }, 500);
+            };
+            document.getElementById('stopslideshow').onclick = function(){
+                if (startSlideShow) {
+                    clearInterval(startSlideShow);
+                }
+            }
+        };
+    </script>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-5XK8QFHCGY"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-5XK8QFHCGY');
+    </script>
+    <link rel="stylesheet" href="/css/pure-min.css">
+    <link rel="stylesheet" href="/css/grids-responsive-min.css">
+    <style>
+        html,
+        body {
+            height: 100%;
+        }
+
+        canvas {
+            border-style: groove;
+        }
+        
+        div.borderbottom {
+            border-bottom: 1px solid #ddd;
+        }
+
+        button.mybutton {
+            margin: 1em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Game of Life</h1>
+
+    <p>Generate artwork using programs. We will explore <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's Game Of Life</a> 
+        from within the browser. There are several parameters exposed like background, stroke color which can be changed to 
+        obtain various designs.</p>
+
+    
+    <div id="layout" class="pure-g">
+        <div class="sidebar pure-u-1 pure-u-md-1-4">
+            <div class="borderbottom">
+                <button class="pure-button mybutton" type="number" id="startslideshow">Start</button>
+                <button class="pure-button mybutton" type="number" id="stopslideshow">Stop</button>
+            </div>
+            <div class="pure-form pure-form-aligned borderbottom">
+                <fieldset>
+                    <div class="pure-control-group">
+                        <label for="cells">Number of cells on each side:</label>
+                        <input type="number" id="cells" name="cells" value="100"></input>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="population">Population Percentage:</label>
+                        <input type="number" id="population" name="population" value="50"></input>
+                    </div>
+                    <div class="pure-controls">
+                        <button class="pure-button" type="number" id="submit">Symmetric</button>
+                        <button class="pure-button" type="number" id="randomdraw">Random</button>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="content pure-u-1 pure-u-md-3-4">
+            <canvas id="myCanvas" width="800" height="800"></canvas>
+        </div>
+    </div>
+    <p>For any feedback on this page, please send an email to <img src="/images/generative-art-email.png"/></p>
+</body>
+
+</html>
