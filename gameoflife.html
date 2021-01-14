@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script type="text/javascript">
         var universe = [];
+        var background = "#000000";
+        var foreground = "#ffffff";
         function isAlive(virtual, row, col) {
             if (row < 0 || row >= virtual.length || col < 0 || col >= virtual[0].length) {
                 return false;
@@ -76,9 +78,16 @@
             return result;
         }
         var iteration = 0;
-        function oneIteration(canvas, context) {
+        function oneIteration() {
             iteration++;
             console.log("Iteration:", iteration);
+
+            if (universe.length == 0) {
+                return;
+            }
+            var canvas = document.getElementById("myCanvas");
+            var context = canvas.getContext("2d");
+            
             var cur = universe;
             var newData = initializeArray(cur.length, cur[0].length);
             for (var i = 0; i < cur.length; i++) {
@@ -90,7 +99,7 @@
             }
             
             universe = newData;
-            projectImage(canvas, context, universe);
+            projectImage(canvas, context, universe, foreground, background);
         }
         function createPoint(imgData, pointWidthX, pointWidthY, x, y, color) {
             // console.log(pointWidthX, pointWidthY, x, y, color);
@@ -108,18 +117,38 @@
                 }
             }
         }
-        function projectImage(canvas, context, virtual) {
+        function hexToRgb(hex) {
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+        var white = "#ffffff";
+        var black = "#000000";
+        function projectImage(canvas, context, virtual, myfg, mybg) {
             var psx = canvas.width/virtual[0].length;
             var psy = canvas.height/virtual.length;
             var imgData = context.createImageData(canvas.width, canvas.height);
             var side = virtual.length;
+            var fg = hexToRgb(myfg);
+            if (fg == null) {
+                alert("Unable to parse foreground color " + myfg + ". Assuming white.");
+                fg = hexToRgb(white);
+            }
+            var bg = hexToRgb(mybg);
+            if (bg == null) {
+                alert("Unable to parse background color " + mybg + ". Assuming black.");
+                bg = hexToRgb(black);
+            }
             for (var i = 0; i < virtual.length; i++) {
                 for (var j = 0; j < virtual[i].length; j++) {
                     if (virtual[i][j] == 1) {
                         // console.log(c);
-                        createPoint(imgData, psx, psy, j, i, [255,255,255,255]);
+                        createPoint(imgData, psx, psy, j, i, [fg.r, fg.g, fg.b,255]);
                     } else {
-                        createPoint(imgData, psx, psy, j, i, [0,0,0,255]);
+                        createPoint(imgData, psx, psy, j, i, [bg.r,bg.g,bg.b, 255]);
                     }
                 }
             }
@@ -141,7 +170,10 @@
             var numPoints = Math.floor(numCells*percentPoints/100);
             var curPoints = 0;
             var limit = Math.floor((virtual.length -1)/2)+1;
-            while(curPoints < numPoints) {
+            console.log(numCells, n, numPoints, curPoints, limit);
+            var maxIterations = numPoints;
+            var curIteration = 0;
+            while(curPoints < numPoints && curIteration < maxIterations) {
                 var i = Math.floor((Math.random()*limit));
                 var j = Math.floor((Math.random()*limit));
                 if (i>j) { //swap
@@ -157,38 +189,49 @@
                         curPoints++;
                     }
                 }
+                curIteration++;
             }
         }
-        function reset(canvas, context, popfunc, cells, population) {
+        function reset(popfunc, cells, population, myfg, mybg) {
+            console.log(cells, population, myfg, mybg);
+            var canvas = document.getElementById('myCanvas');
+            var context = canvas.getContext('2d');
+            
             var percentPoints = population;
             if (percentPoints >= 100 || percentPoints <= 0) {
-                alert("Invalid Population percentage ", population);
-                percentPoints = 50;
+                alert("Invalid Population percentage " + population);
+                return;
             }
             if (cells <= 0 || cells > 800) {
-                cells = 100;
+                alert("Cells on each side cannot exceed 800. Given " + cells);
+                return;
             }
             var virtualWidth = cells;
             var virtualHeight = cells;
             
-            clear(canvas, context);
-            universe = initializeArray(virtualHeight, virtualWidth);
+            if (universe.length != cells) {
+                universe = initializeArray(virtualHeight, virtualWidth);
+            }
             popfunc(universe, percentPoints);
 
-            projectImage(canvas, context, universe);
+            projectImage(canvas, context, universe, myfg, mybg);
             console.log("Done drawing");
         }
-        function clear(canvas, context) {
-            context.fillStyle = "black";
+        function setBackground(mybg) {
+            var canvas = document.getElementById('myCanvas');
+            var context = canvas.getContext('2d');
+            
+            context.fillStyle = mybg;
             context.fillRect(0, 0, canvas.width, canvas.height);
+            universe = [];
         }
         window.onload = function () {
             var drawWithParameters = function (popfunc) {
                 let cells = Number(document.getElementById('cells').value);
                 let population = Number(document.getElementById('population').value);
-                var canvas = document.getElementById('myCanvas');
-                var context = canvas.getContext('2d');
-                reset(canvas, context, popfunc, cells, population);
+                foreground = document.getElementById('foreground').value;
+                background = document.getElementById('background').value;
+                reset(popfunc, cells, population, foreground, background);
             };
             var symmetricDraw = function() {
                 drawWithParameters(populateSymmetricRandom);
@@ -201,13 +244,16 @@
             document.getElementById('randomdraw').onclick = randomDraw;
 
             drawWithParameters(populateSymmetricRandom);
+
+            document.getElementById('clear').onclick = function() {
+                background = document.getElementById('background').value;
+                setBackground(background);
+            };
             var startSlideShow;
             document.getElementById('startslideshow').onclick = function(){
                 
                 startSlideShow = setInterval(function(){
-                    var canvas = document.getElementById("myCanvas");
-                    var context = canvas.getContext("2d");
-                    oneIteration(canvas, context);
+                    oneIteration();
                 }, 500);
             };
             document.getElementById('stopslideshow').onclick = function(){
@@ -271,9 +317,24 @@
                         <label for="population">Population Percentage:</label>
                         <input type="number" id="population" name="population" value="50"></input>
                     </div>
+                    <div class="pure-control-group">
+                        <label for="foreground">Foreground color:</label>
+                        <input type="text" id="foreground" name="foreground" value="#ffffff"></input>
+                    </div>
                     <div class="pure-controls">
                         <button class="pure-button" type="number" id="submit">Symmetric</button>
                         <button class="pure-button" type="number" id="randomdraw">Random</button>
+                    </div>
+                </fieldset>
+            </div>
+            <div class="pure-form pure-form-aligned borderbottom">
+                <fieldset>
+                    <div class="pure-control-group">
+                        <label for="background">Background:</label>
+                        <input type="text" id="background" name="background" value="#000000"></input>
+                    </div>
+                    <div class="pure-controls">
+                        <button class="pure-button" type="number" id="clear">Clear</button>
                     </div>
                 </fieldset>
             </div>
