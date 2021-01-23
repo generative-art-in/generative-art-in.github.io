@@ -9,11 +9,13 @@
         var universe = [];
         var background = "#000000";
         var foreground = "#ffffff";
+        var iteration = 0;
+        var monochrome = false;
         function isAlive(virtual, row, col) {
             if (row < 0 || row >= virtual.length || col < 0 || col >= virtual[0].length) {
                 return false;
             }
-            return virtual[row][col];
+            return virtual[row][col] > 0;
         }
         function determineStatus(neighborsAlive) {
             switch(neighborsAlive){
@@ -51,21 +53,15 @@
                 case -1:
                     return 0;
                 case 0:
-                    if (isAlive(virtual,row,col)){
-                        return 1;
-                    } else {
-                        return 0;
-                    }
+                    return virtual[row][col];
                 default:
-                    return 1;
+                    if (virtual[row][col] > 0) {
+                        return virtual[row][col];
+                    } else {
+                        return iteration;
+                    }
             }
         }
-        function setStatus(virtual, row, col, life) {
-            if (row < 0 || row >= virtual.length || col < 0 || col >= virtual[0].length) {
-                return false;
-            }
-            virtual[row][col] = life;
-        } 
         function initializeArray(numRows, numCols) {
             var result = [];
             for (var i = 0; i < numRows; i++) {
@@ -77,7 +73,7 @@
             }
             return result;
         }
-        var iteration = 0;
+
         function oneIteration() {
             iteration++;
             console.log("Iteration:", iteration);
@@ -99,7 +95,7 @@
             }
             
             universe = newData;
-            projectImage(canvas, context, universe, foreground, background);
+            projectImage(canvas, context, universe, foreground, background, monochrome);
         }
         function createPoint(imgData, pointWidthX, pointWidthY, x, y, color) {
             // console.log(pointWidthX, pointWidthY, x, y, color);
@@ -127,7 +123,10 @@
         }
         var white = "#ffffff";
         var black = "#000000";
-        function projectImage(canvas, context, virtual, myfg, mybg) {
+        var colors = ["#ff0000", "#ff4000", "#ff8000", "#ffbf00", "#ffff00", "#bfff00", "#80ff00", "#40ff00", "#00ff00", "#00ff40",
+                    "#00ff80", "#00ffbf", "#00ffff", "#00bfff", "#0080ff", "#0040ff", "#0000ff", "#4000ff", "#8000ff", "#bf00ff",
+                    "#ff00ff", "#ff00bf", "#ff0080", "#ff0040", "#ff0000"];
+        function projectImage(canvas, context, virtual, myfg, mybg, mymc) {
             var psx = canvas.width/virtual[0].length;
             var psy = canvas.height/virtual.length;
             var imgData = context.createImageData(canvas.width, canvas.height);
@@ -144,9 +143,14 @@
             }
             for (var i = 0; i < virtual.length; i++) {
                 for (var j = 0; j < virtual[i].length; j++) {
-                    if (virtual[i][j] == 1) {
-                        // console.log(c);
-                        createPoint(imgData, psx, psy, j, i, [fg.r, fg.g, fg.b,255]);
+                    if (virtual[i][j] > 0) {
+                        if (mymc) {
+                            createPoint(imgData, psx, psy, j, i, [fg.r, fg.b, fg.b,255]);
+                        } else {
+                            var c = colors[virtual[i][j]%colors.length];
+                            var crgb = hexToRgb(c);
+                            createPoint(imgData, psx, psy, j, i, [crgb.r, crgb.b, crgb.b,255]);
+                        }
                     } else {
                         createPoint(imgData, psx, psy, j, i, [bg.r,bg.g,bg.b, 255]);
                     }
@@ -161,7 +165,7 @@
                 var pos = Math.floor(Math.random() * numCells);
                 var row = Math.floor(pos/virtual[0].length);
                 var col = pos%virtual[0].length;
-                virtual[row][col] = 1;
+                virtual[row][col] = iteration;
             }
         }
         function populateSymmetricRandom(virtual, percentPoints) {
@@ -184,16 +188,18 @@
                 var px = [i, j, i    , j    , n-j-1, n-i-1, n-j-1, n-i-1];
                 var py = [j, i, n-j-1, n-i-1, i    , j    , n-i-1, n-j-1];
                 for (var a=0; a < px.length; a++) {
-                    if (virtual[px[a]][py[a]] != 1) {
-                        virtual[px[a]][py[a]] = 1;
+                    if (virtual[px[a]][py[a]] == 0) {
+                        virtual[px[a]][py[a]] = iteration;
                         curPoints++;
                     }
                 }
                 curIteration++;
             }
         }
-        function reset(popfunc, cells, population, myfg, mybg) {
+        function reset(popfunc, cells, population, myfg, mybg, mymc) {
             console.log(cells, population, myfg, mybg);
+
+            iteration++;
             var canvas = document.getElementById('myCanvas');
             var context = canvas.getContext('2d');
             
@@ -214,7 +220,7 @@
             }
             popfunc(universe, percentPoints);
 
-            projectImage(canvas, context, universe, myfg, mybg);
+            projectImage(canvas, context, universe, myfg, mybg, mymc);
             console.log("Done drawing");
         }
         function clear(mybg) {
@@ -252,16 +258,17 @@
             document.getElementById('setcolor').onclick = function() {
                 background = document.getElementById('background').value;
                 foreground = document.getElementById('foreground').value;
+                monochrome = document.getElementById('monochrome').checked;
                 var canvas = document.getElementById('myCanvas');
                 var context = canvas.getContext('2d');
-                projectImage(canvas, context, universe, foreground, background);
+                projectImage(canvas, context, universe, foreground, background, monochrome);
             };
             var startSlideShow;
             document.getElementById('startslideshow').onclick = function(){
-                
+                let interval = Number(document.getElementById('interval').value);
                 startSlideShow = setInterval(function(){
                     oneIteration();
-                }, 500);
+                }, interval);
             };
             document.getElementById('stopslideshow').onclick = function(){
                 if (startSlideShow) {
@@ -314,6 +321,10 @@
     <div id="layout" class="pure-g">
         <div class="sidebar pure-u-1 pure-u-md-1-4">
             <div class="borderbottom">
+                <div>
+                    <label for="interval">Interval(ms):</label>
+                    <input type="number" id="interval" name="interval" value="500"></input>
+                </div>
                 <button class="pure-button mybutton" type="number" id="startslideshow">Start</button>
                 <button class="pure-button mybutton" type="number" id="stopslideshow">Stop</button>
                 <button class="pure-button mybutton" type="number" id="step">Step</button>
@@ -343,6 +354,10 @@
                     <div class="pure-control-group">
                         <label for="background">Background:</label>
                         <input type="text" id="background" name="background" value="#000000"></input>
+                    </div>
+                    <div class="pure-control-group">
+                        <label for="monochrome">Monochrome</label>
+                        <input type="checkbox" id="monochrome" name="monochrome" value="false"></input>
                     </div>
                     <div class="pure-controls">
                         <button class="pure-button" type="number" id="setcolor">Set</button>
