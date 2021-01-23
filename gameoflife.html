@@ -11,6 +11,7 @@
         var foreground = "#ffffff";
         var iteration = 0;
         var monochrome = false;
+        var snapshots = [];
         function isAlive(virtual, row, col) {
             if (row < 0 || row >= virtual.length || col < 0 || col >= virtual[0].length) {
                 return false;
@@ -36,7 +37,7 @@
             var narrx = [-1, 0, 1,-1, 1,-1, 0, 1];
             var narry = [-1,-1,-1, 0, 0, 1, 1, 1];
             var neighborsAlive = 0;
-            for (var i = 0; i < 8; i++) {
+            for (let i = 0; i < 8; i++) {
                 var nrow = row + narrx[i];
                 var ncol = col + narry[i];
                 if (isAlive(virtual, nrow, ncol)) {
@@ -64,9 +65,9 @@
         }
         function initializeArray(numRows, numCols) {
             var result = [];
-            for (var i = 0; i < numRows; i++) {
+            for (let i = 0; i < numRows; i++) {
                 var row = [];
-                for(var j = 0; j < numCols; j++) {
+                for(let j = 0; j < numCols; j++) {
                     row[j] = 0;
                 }
                 result[i] = row;
@@ -86,8 +87,8 @@
             
             var cur = universe;
             var newData = initializeArray(cur.length, cur[0].length);
-            for (var i = 0; i < cur.length; i++) {
-                for (var j = 0; j < cur[i].length; j++) {
+            for (let i = 0; i < cur.length; i++) {
+                for (let j = 0; j < cur[i].length; j++) {
                     var life = getStatus(cur, i, j);
                     newData[i][j] = life;
                     
@@ -101,8 +102,8 @@
             // console.log(pointWidthX, pointWidthY, x, y, color);
             var startX = x*pointWidthX;
             var startY = y*pointWidthY;
-            for (var i = 0; i < pointWidthX; i++) {
-                for (var j = 0; j < pointWidthY; j++) {
+            for (let i = 0; i < pointWidthX; i++) {
+                for (let j = 0; j < pointWidthY; j++) {
                     var curX = startX + i;
                     var curY = startY + j;
                     var pos = curY*imgData.width + curX;
@@ -141,8 +142,8 @@
                 alert("Unable to parse background color " + mybg + ". Assuming black.");
                 bg = hexToRgb(black);
             }
-            for (var i = 0; i < virtual.length; i++) {
-                for (var j = 0; j < virtual[i].length; j++) {
+            for (let i = 0; i < virtual.length; i++) {
+                for (let j = 0; j < virtual[i].length; j++) {
                     if (virtual[i][j] > 0) {
                         if (mymc) {
                             createPoint(imgData, psx, psy, j, i, [fg.r, fg.b, fg.b,255]);
@@ -161,7 +162,7 @@
         function populateRandom(virtual, percentPoints){
             var numCells = virtual.length * virtual[0].length;
             var numPoints = Math.floor(numCells*percentPoints/100);
-            for (var i = 0; i < numPoints; i++) {
+            for (let i = 0; i < numPoints; i++) {
                 var pos = Math.floor(Math.random() * numCells);
                 var row = Math.floor(pos/virtual[0].length);
                 var col = pos%virtual[0].length;
@@ -220,6 +221,8 @@
             }
             popfunc(universe, percentPoints);
 
+            snapshots.push(universe);
+            updateSnapshots(snapshots);
             projectImage(canvas, context, universe, myfg, mybg, mymc);
             console.log("Done drawing");
         }
@@ -230,7 +233,55 @@
             context.fillStyle = mybg;
             context.fillRect(0, 0, canvas.width, canvas.height);
             universe = [];
+            snapshots = [];
+            updateSnapshots(snapshots);
         }
+
+        function getMaxIteration(virtual) {
+            var it = 1;
+            for (let i = 0; i < virtual.length; i++) {
+                for (let j = 0; j < virtual[i].length; j++) {
+                    if (virtual[i][j] > it) {
+                        it = virtual[i][j];
+                    }
+                }
+            }
+            return it;
+        }
+        function updateSnapshots(snapshotArr) {
+            var shele = document.getElementById("snapshots");
+
+            // clear
+            while (shele.firstChild) {
+                shele.removeChild(shele.firstChild);
+            }
+
+            // re-create
+            for (let i = snapshotArr.length - 1; i >= 0; i--) {
+                var node = document.createElement("LI");    
+                var btn = document.createElement("BUTTON");
+                btn.id = "snapshot-"+i;
+                btn.onclick = function() {
+                    universe = snapshots[i];
+                    iteration = getMaxIteration(universe);
+                    setColor();
+                };
+                var t = document.createTextNode("Snapshot " + i);
+                btn.appendChild(t);
+                node.appendChild(btn);
+                shele.appendChild(node);  
+            }
+        }
+
+        function setColor() {
+            background = document.getElementById('background').value;
+            foreground = document.getElementById('foreground').value;
+            monochrome = document.getElementById('monochrome').checked;
+            var canvas = document.getElementById('myCanvas');
+            var context = canvas.getContext('2d');
+            projectImage(canvas, context, universe, foreground, background, monochrome);
+        }
+        
         window.onload = function () {
             var drawWithParameters = function (popfunc) {
                 let cells = Number(document.getElementById('cells').value);
@@ -255,14 +306,7 @@
                 background = document.getElementById('background').value;
                 clear(background);
             };
-            document.getElementById('setcolor').onclick = function() {
-                background = document.getElementById('background').value;
-                foreground = document.getElementById('foreground').value;
-                monochrome = document.getElementById('monochrome').checked;
-                var canvas = document.getElementById('myCanvas');
-                var context = canvas.getContext('2d');
-                projectImage(canvas, context, universe, foreground, background, monochrome);
-            };
+            document.getElementById('setcolor').onclick = setColor;
             var startSlideShow;
             document.getElementById('startslideshow').onclick = function(){
                 let interval = Number(document.getElementById('interval').value);
@@ -364,6 +408,10 @@
                         <button class="pure-button" type="number" id="clear">Clear</button>
                     </div>
                 </fieldset>
+            </div>
+            <div class="borderbottom">
+                Snapshots
+                <ol id="snapshots"></ol>
             </div>
         </div>
         <div class="content pure-u-1 pure-u-md-3-4">
