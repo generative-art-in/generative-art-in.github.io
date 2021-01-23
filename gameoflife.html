@@ -260,7 +260,10 @@
                 if (startSlideShow) {
                     clearInterval(startSlideShow);
                 }
-            }
+            };
+            document.getElementById('step').onclick = function(){
+                oneIteration();
+            };
         };
     </script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -297,7 +300,7 @@
     <h1>Game of Life</h1>
 
     <p>Generate artwork using programs. We will explore <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's Game Of Life</a> 
-        from within the browser. There are several parameters exposed like background, stroke color which can be changed to 
+        from within the browser. There are several parameters exposed like background, foreground which can be changed to 
         obtain various designs.</p>
 
     
@@ -306,6 +309,7 @@
             <div class="borderbottom">
                 <button class="pure-button mybutton" type="number" id="startslideshow">Start</button>
                 <button class="pure-button mybutton" type="number" id="stopslideshow">Stop</button>
+                <button class="pure-button mybutton" type="number" id="step">Step</button>
             </div>
             <div class="pure-form pure-form-aligned borderbottom">
                 <fieldset>
