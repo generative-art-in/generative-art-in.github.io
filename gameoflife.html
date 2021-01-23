@@ -217,7 +217,7 @@
             projectImage(canvas, context, universe, myfg, mybg);
             console.log("Done drawing");
         }
-        function setBackground(mybg) {
+        function clear(mybg) {
             var canvas = document.getElementById('myCanvas');
             var context = canvas.getContext('2d');
             
@@ -247,7 +247,14 @@
 
             document.getElementById('clear').onclick = function() {
                 background = document.getElementById('background').value;
-                setBackground(background);
+                clear(background);
+            };
+            document.getElementById('setcolor').onclick = function() {
+                background = document.getElementById('background').value;
+                foreground = document.getElementById('foreground').value;
+                var canvas = document.getElementById('myCanvas');
+                var context = canvas.getContext('2d');
+                projectImage(canvas, context, universe, foreground, background);
             };
             var startSlideShow;
             document.getElementById('startslideshow').onclick = function(){
@@ -260,7 +267,10 @@
                 if (startSlideShow) {
                     clearInterval(startSlideShow);
                 }
-            }
+            };
+            document.getElementById('step').onclick = function(){
+                oneIteration();
+            };
         };
     </script>
     <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -297,7 +307,7 @@
     <h1>Game of Life</h1>
 
     <p>Generate artwork using programs. We will explore <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's Game Of Life</a> 
-        from within the browser. There are several parameters exposed like background, stroke color which can be changed to 
+        from within the browser. There are several parameters exposed like background, foreground which can be changed to 
         obtain various designs.</p>
 
     
@@ -306,6 +316,7 @@
             <div class="borderbottom">
                 <button class="pure-button mybutton" type="number" id="startslideshow">Start</button>
                 <button class="pure-button mybutton" type="number" id="stopslideshow">Stop</button>
+                <button class="pure-button mybutton" type="number" id="step">Step</button>
             </div>
             <div class="pure-form pure-form-aligned borderbottom">
                 <fieldset>
@@ -317,10 +328,6 @@
                         <label for="population">Population Percentage:</label>
                         <input type="number" id="population" name="population" value="50"></input>
                     </div>
-                    <div class="pure-control-group">
-                        <label for="foreground">Foreground color:</label>
-                        <input type="text" id="foreground" name="foreground" value="#ffffff"></input>
-                    </div>
                     <div class="pure-controls">
                         <button class="pure-button" type="number" id="submit">Symmetric</button>
                         <button class="pure-button" type="number" id="randomdraw">Random</button>
@@ -330,10 +337,15 @@
             <div class="pure-form pure-form-aligned borderbottom">
                 <fieldset>
                     <div class="pure-control-group">
+                        <label for="foreground">Foreground color:</label>
+                        <input type="text" id="foreground" name="foreground" value="#ffffff"></input>
+                    </div>
+                    <div class="pure-control-group">
                         <label for="background">Background:</label>
                         <input type="text" id="background" name="background" value="#000000"></input>
                     </div>
                     <div class="pure-controls">
+                        <button class="pure-button" type="number" id="setcolor">Set</button>
                         <button class="pure-button" type="number" id="clear">Clear</button>
                     </div>
                 </fieldset>
